@@ -1,219 +1,118 @@
-const { Permissions, EmbedBuilder } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 module.exports = {
     name: 'promote',
-    description: 'Promotes multiple users to a higher rank',
-    execute(message, args) {
-        // Role IDs for each rank
-        const rankRoles = {
-            'Private': '1248818417499373638',
-            'Lance-Corporal': '1248818393146986497',
-            'Corporal': '1248818392681680908',
-            'Sergeant': '1248818391805067264',
-            'Chef-Sergeant': '1248818391024799804',
-            'Warrant-Officer': '1248815968885538816',
-            'Lieutenant': '1248819920595189862',
-            'Pathfinder': '1248815967262212176',
-            'Captain': '1248815966263967787',
-            'Field-Major': '1248815965924491294',
-            'Colonel': '1248815965580558418',
-            'Brigadier-Sovereign': '1248815964620066856',
-            'Field-Marshal': '1248815960966823978'
+    description: 'Assigns a rank to a user',
+    async execute(message, args) {
+        const roleIDs = {
+            'pr': '1248818417499373638', // Private
+            'lc': '1248818393146986497', // Lance Corporal
+            'co': '1248818392681680908', // Corporal
+            'se': '1248818391805067264', // Sergeant
+            'cs': '1248818391024799804', // Chef Sergeant
+            'wo': '1248815968885538816', // Warrant Officer
+            'li': '1248819920595189862', // Lieutenant
+            'pa': '1248815967262212176', // Pathfinder
+            'ca': '1248815966263967787', // Captain
+            'fm': '1248815965924491294', // Field Major
+            'co': '1248815965580558418', // Colonel
+            'bs': '1248815964620066856', // Brigadier Sovereign
+            'fm': '1248815960966823978'  // Field Marshal
         };
 
-        // Rank hierarchy
-        const rankHierarchy = [
-            'Private',
-            'Lance-Corporal',
-            'Corporal',
-            'Sergeant',
-            'Chef-Sergeant',
-            'Warrant-Officer',
-            'Lieutenant',
-            'Pathfinder',
-            'Captain',
-            'Field-Major',
-            'Colonel',
-            'Brigadier-Sovereign',
-            'Field-Marshal'
-        ];
+        const roleNames = {
+            'pr': 'Private',
+            'lc': 'Lance Corporal',
+            'co': 'Corporal',
+            'se': 'Sergeant',
+            'cs': 'Chef Sergeant',
+            'wo': 'Warrant Officer',
+            'li': 'Lieutenant',
+            'pa': 'Pathfinder',
+            'ca': 'Captain',
+            'fm': 'Field Major',
+            'co': 'Colonel',
+            'bs': 'Brigadier Sovereign',
+            'fm': 'Field Marshal'
+        };
 
-        // Role levels
         const levelRoles = {
-            level1: '1258770431331012659',
-            level2: '1258770333486288979',
-            level3: '1258770232835833856',
-            level4: '1258770336862830716'
+            'level1': '1258770431331012659',
+            'level2': '1258770333486288979',
+            'level3': '1258770232835833856',
+            'level4': '1258770336862830716'
         };
 
-        // Check if the command was used correctly
-        if (args.length < 2) {
-            const usageEmbed = new EmbedBuilder()
-                .setTitle('Error Code 1059')
-                .setColor('#58b9ff')
-                .setDescription('- **Error**: Command input is invalid!\n- **Solution**: Please use the command in the following format: !promote <@user1> <@user2> ... <rank>')
-                .setTimestamp();
-
-            return message.reply({ embeds: [usageEmbed] });
-        }
-
-        // Get the rank argument
-        const rankArg = args[args.length - 1];
-        const rankID = rankRoles[rankArg];
-        if (!rankID) {
-            const invalidRankEmbed = new EmbedBuilder()
-                .setTitle('Error Code 1060')
-                .setDescription('- **Error**: Invalid Rank executed!\n- **Solution**: Please execute the correct rank in order to promote users!')
-                .setColor('#58b9ff')
-                .setTimestamp();
-
-            return message.reply({ embeds: [invalidRankEmbed] });
-        }
-
-        // Get the mentioned users
-        const userMentions = args.slice(0, -1);
-        const users = userMentions.map(mention => message.mentions.users.get(mention.replace(/[<@!>]/g, ''))).filter(Boolean);
-
-        if (users.length === 0) {
-            const noUserMentionEmbed = new EmbedBuilder()
-                .setTitle('Error Code 1062')
-                .setDescription('- **Error**: No valid users mentioned!\n- **Solution**: Please mention valid users to assign the rank.')
-                .setColor('#58b9ff')
-                .setTimestamp();
-
-            return message.reply({ embeds: [noUserMentionEmbed] });
-        }
-
-        const guild = message.guild;
-
-        if (!guild) {
-            const noServerEmbed = new EmbedBuilder()
-                .setColor('#58b9ff')
-                .setDescription('This command must be used in a server!');
-
-            return message.reply({ embeds: [noServerEmbed] });
-        }
-
-        // Determine the highest level role the message author has
-        let authorLevel = -1;
-        if (message.member.roles.cache.has(levelRoles.level4)) {
-            authorLevel = 4;
-        } else if (message.member.roles.cache.has(levelRoles.level3)) {
-            authorLevel = 3;
-        } else if (message.member.roles.cache.has(levelRoles.level2)) {
-            authorLevel = 2;
-        } else if (message.member.roles.cache.has(levelRoles.level1)) {
-            authorLevel = 1;
-        }
-
-        if (authorLevel === -1) {
-            const noPermissionEmbed = new EmbedBuilder()
-                .setTitle('Error Code 1056')
-                .setDescription('- **Error**: You do not have permission to use this command!\n- **Solution**: You must have a valid ranking role to use this command!')
-                .setColor('#58b9ff')
-                .setTimestamp();
-
-            return message.reply({ embeds: [noPermissionEmbed] });
-        }
-
-        // Determine the highest rank the author can promote to based on their level
-        const maxRankByLevel = {
-            1: 'Corporal',
-            2: 'Sergeant',
-            3: 'Field-Major',
-            4: 'Field-Marshal'  // Level 4 can promote to any rank
+        const promotionHierarchy = {
+            'level1': ['pr', 'lc', 'co'],
+            'level2': ['pr', 'lc', 'co', 'se'],
+            'level3': ['pr', 'lc', 'co', 'se', 'cs', 'wo', 'li', 'pa', 'ca', 'fm'],
+            'level4': ['pr', 'lc', 'co', 'se', 'cs', 'wo', 'li', 'pa', 'ca', 'fm', 'co', 'bs', 'fm']
         };
 
-        const maxRank = maxRankByLevel[authorLevel];
-        const maxRankIndex = rankHierarchy.indexOf(maxRank);
-        const targetRankIndex = rankHierarchy.indexOf(rankArg);
+        const createEmbed = (color, title, description) => {
+            return new EmbedBuilder()
+                .setColor(color)
+                .setTitle(title)
+                .setDescription(description);
+        };
 
-        if (targetRankIndex === -1 || targetRankIndex > maxRankIndex) {
-            const rankNotAllowedEmbed = new EmbedBuilder()
-                .setTitle('Promote Command')
-                .setDescription(`- **Error**: You can only promote up to ${maxRank}!`)
-                .setColor('#58b9ff')
-                .setTimestamp();
-
-            return message.reply({ embeds: [rankNotAllowedEmbed] });
-        }
-
-        // Process each user and accumulate results
-        const successUsers = [];
-        const failedUsers = [];
-
-        const processUser = (user) => {
-            return new Promise((resolve, reject) => {
-                const member = guild.members.cache.get(user.id);
-                if (!member) {
-                    failedUsers.push(user.tag);
-                    return resolve();
-                }
-
-                // Check if the member already has a rank role
-                const currentRoleID = Object.values(rankRoles).find(role => member.roles.cache.has(role));
-
-                // Ensure we only promote, not demote
-                const currentRankIndex = currentRoleID ? rankHierarchy.findIndex(rank => rankRoles[rank] === currentRoleID) : -1;
-
-                if (currentRankIndex >= targetRankIndex) {
-                    failedUsers.push(user.tag);
-                    return resolve();
-                }
-
-                const updateRoles = () => {
-                    if (currentRoleID) {
-                        member.roles.remove(currentRoleID)
-                            .then(() => {
-                                member.roles.add(rankID)
-                                    .then(() => {
-                                        successUsers.push(user.tag);
-                                        resolve();
-                                    })
-                                    .catch(error => {
-                                        console.error('Failed to assign rank:', error);
-                                        failedUsers.push(user.tag);
-                                        resolve();
-                                    });
-                            })
-                            .catch(error => {
-                                console.error('Failed to remove current rank:', error);
-                                failedUsers.push(user.tag);
-                                resolve();
-                            });
-                    } else {
-                        member.roles.add(rankID)
-                            .then(() => {
-                                successUsers.push(user.tag);
-                                resolve();
-                            })
-                            .catch(error => {
-                                console.error('Failed to assign rank:', error);
-                                failedUsers.push(user.tag);
-                                resolve();
-                            });
-                    }
-                };
-
-                updateRoles();
+        if (!message.member.permissions.has('MANAGE_ROLES')) {
+            return message.reply({
+                embeds: [createEmbed('#0066ff', 'Permission Failed `❌`', "- You don't have permission to use this command.")]
             });
-        };
+        }
 
-        // Process all users
-        const userPromises = users.map(user => processUser(user));
+        const user = message.mentions.members.first();
+        const newRank = args[1];
+        if (!user || !newRank || !roleIDs[newRank]) {
+            return message.reply({
+                embeds: [createEmbed('#0066ff', 'Invalid Format `❌`', '- Please mention a user and specify a valid rank.')]
+            });
+        }
 
-        Promise.all(userPromises).then(() => {
-            const successMessage = successUsers.length > 0 ? `- **Success**: Successfully promoted to ${rankArg} role for ${successUsers.join(', ')}.\n` : '';
-            const failureMessage = failedUsers.length > 0 ? `- **Error**: Failed to promote to ${rankArg} role for ${failedUsers.join(', ')}.\n` : '';
-            const combinedMessage = `${successMessage}${failureMessage}`;
+        const userRoles = user.roles.cache.map(role => role.id);
+        const currentRoleID = userRoles.find(role => Object.values(roleIDs).includes(role));
 
-            const resultEmbed = new EmbedBuilder()
-                .setTitle('Rank Promotion Results')
-                .setDescription(`${combinedMessage}- **Bug**: Code 1058`)
-                .setColor(successUsers.length > 0 ? '#58b9ff' : '#58b9ff')
-                .setTimestamp();
+        const execLevelRoleID = message.member.roles.cache.find(role => Object.values(levelRoles).includes(role.id))?.id;
+        const execLevel = Object.keys(levelRoles).find(key => levelRoles[key] === execLevelRoleID);
 
-            message.reply({ embeds: [resultEmbed] });
-        });
-    },
+        if (!execLevel) {
+            return message.reply({
+                embeds: [createEmbed('#0066ff', 'Invalid Rank `❌`', '- You do not have a valid level role to promote.')]
+            });
+        }
+
+        const newRoleID = roleIDs[newRank];
+        const newRankLevel = Object.keys(roleIDs).find(key => roleIDs[key] === newRoleID);
+
+        // Ensure promotion is to a higher rank
+        const currentRankLevel = Object.keys(roleIDs).find(key => roleIDs[key] === currentRoleID);
+        const newRankIndex = promotionHierarchy[execLevel].indexOf(newRank);
+        const currentRankIndex = promotionHierarchy[execLevel].indexOf(currentRankLevel);
+
+        if (currentRankIndex >= 0 && newRankIndex <= currentRankIndex) {
+            // Send error message without removing any role
+            return message.reply({
+                embeds: [createEmbed('#0066ff', 'Promotion Failed `❌`', `- You cannot promote ${user} to the ${roleNames[newRank]} role as it is a demotion.`)]
+            });
+        }
+
+        if (!promotionHierarchy[execLevel].includes(newRank)) {
+            return message.reply({
+                embeds: [createEmbed('#0066ff', 'Promotion Failed `❌`', `- You cannot promote to the ${roleNames[newRank]} role.`)]
+            });
+        }
+
+        // Remove current role if promotion is valid
+        if (currentRoleID) {
+            await user.roles.remove(currentRoleID);
+        }
+
+        // Add new role
+        await user.roles.add(newRoleID);
+
+        const successEmbed = createEmbed('#0066ff', 'Rank Assigned `✔️`', `- Successfully promoted ${user} to ${roleNames[newRank]}.`);
+        message.channel.send({ embeds: [successEmbed] });
+    }
 };
