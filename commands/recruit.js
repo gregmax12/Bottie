@@ -11,9 +11,9 @@ module.exports = {
         // Check if the command was used correctly
         if (args.length < 1) {
             const usageEmbed = new EmbedBuilder()
-                .setTitle('Error Code 1068')
-                .setColor('#58b9ff')
-                .setDescription('- **Error**: Command input is invalid!\n- **Solution**: Please use the command in the following format: !recruit <@user1> <@user2> ...')
+                .setTitle('Invalid Format `❌`')
+                .setDescription('- Format :  `!recruit @<user>`')
+                .setColor('#0066ff')
                 .setTimestamp();
 
             return message.reply({ embeds: [usageEmbed] });
@@ -24,9 +24,9 @@ module.exports = {
 
         if (mentionedUsers.size === 0) {
             const noUserMentionEmbed = new EmbedBuilder()
-                .setTitle('Error Code 1069')
-                .setDescription('- **Error**: No valid users mentioned!\n- **Solution**: Please mention valid users to recruit.')
-                .setColor('#58b9ff')
+                .setTitle('Invalid User `❌`')
+                .setDescription('- Please mention a valid user.')
+                .setColor('#0066ff')
                 .setTimestamp();
 
             return message.reply({ embeds: [noUserMentionEmbed] });
@@ -36,7 +36,7 @@ module.exports = {
 
         if (!guild) {
             const noServerEmbed = new EmbedBuilder()
-                .setColor('#ff0000')
+                .setColor('#0066ff')
                 .setDescription('This command must be used in a server!');
 
             return message.reply({ embeds: [noServerEmbed] });
@@ -81,9 +81,9 @@ module.exports = {
         setTimeout(() => {
             if (successUsers.length > 0) {
                 const successEmbed = new EmbedBuilder()
-                    .setTitle('Recruitment Successful')
-                    .setDescription(`- **Success**: Successfully recruited the following users by removing the old role and adding the new role: ${successUsers.join(', ')}`)
-                    .setColor('#58b9ff')
+                    .setTitle('Recruitment Successful `✔️`')
+                    .setDescription(`- Successfully recruited  ${successUsers.join(', ')}`)
+                    .setColor('#0066ff')
                     .setTimestamp();
 
                 message.reply({ embeds: [successEmbed] });
@@ -91,9 +91,9 @@ module.exports = {
 
             if (guestRoleNotFoundUsers.length > 0) {
                 const guestRoleNotFoundEmbed = new EmbedBuilder()
-                    .setTitle('Error Code 1070')
-                    .setDescription(`- **Error**: The following users do not have the guest role: ${guestRoleNotFoundUsers.join(', ')}.`)
-                    .setColor('#58b9ff')
+                    .setTitle('Invalid User `❌`')
+                    .setDescription(`- The following users do not have the guest role: ${guestRoleNotFoundUsers.join(', ')}.`)
+                    .setColor('#0066ff')
                     .setTimestamp();
 
                 message.reply({ embeds: [guestRoleNotFoundEmbed] });
@@ -101,9 +101,9 @@ module.exports = {
 
             if (errorUsers.length > 0) {
                 const errorEmbed = new EmbedBuilder()
-                    .setTitle('Recruitment Errors')
-                    .setDescription(`- **Error**: Failed to recruit the following users: ${errorUsers.join(', ')}. Please ensure the bot has the appropriate permissions and try again.`)
-                    .setColor('#ff0000')
+                    .setTitle('Bot Error `❌`')
+                    .setDescription('- The bot encountered an error while attempting to add the roles you specified. Please contact the staff members as well as the developers.')
+                    .setColor('#0066ff')
                     .setTimestamp();
 
                 message.reply({ embeds: [errorEmbed] });
