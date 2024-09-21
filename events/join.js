@@ -20,22 +20,24 @@ module.exports = (client) => {
 
         channel.send({ embeds: [embed] });
 
-        const roleId = '1251367866738151505'; // Role ID to assign
-        const role = member.guild.roles.cache.get(roleId);
+        const roleIds = [
+            '1251367866738151505', // Original role
+            '1287004199787429888', // Additional roles
+            '1287004401470541844',
+            '1287004891117649974'
+        ];
 
-        if (!role) {
-            console.error('Role not found');
-            return;
-        }
-
-        // Check if the member already has the role
-        if (!member.roles.cache.has(roleId)) {
-            try {
-                await member.roles.add(role);
-                console.log(`Assigned role ${role.name} to ${member.user.tag}`);
-            } catch (error) {
-                console.error(`Failed to assign role to ${member.user.tag}:`, error);
-            }
+        try {
+            // Assign all roles concurrently
+            await Promise.all(roleIds.map(async roleId => {
+                const role = member.guild.roles.cache.get(roleId);
+                if (role && !member.roles.cache.has(roleId)) {
+                    await member.roles.add(role);
+                    console.log(`Assigned role ${role.name} to ${member.user.tag}`);
+                }
+            }));
+        } catch (error) {
+            console.error(`Failed to assign roles to ${member.user.tag}:`, error);
         }
     });
 };
