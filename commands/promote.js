@@ -1,9 +1,35 @@
 const { EmbedBuilder } = require('discord.js');
 
+// Cooldown collection to store timestamps
+const cooldowns = new Map();
+
 module.exports = {
     name: 'promote',
     description: 'Assigns a rank to a user',
     async execute(message, args) {
+        const cooldownTime = 5000; // 5 seconds cooldown in milliseconds
+        const now = Date.now();
+        const userId = message.author.id;
+
+        // Check if the user is in cooldowns and if the cooldown has expired
+        if (cooldowns.has(userId)) {
+            const expirationTime = cooldowns.get(userId) + cooldownTime;
+            if (now < expirationTime) {
+                const timeLeft = ((expirationTime - now) / 1000).toFixed(1);
+                return message.reply({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setColor('#0066ff')
+                            .setTitle('Cooldown Active `⏳`')
+                            .setDescription(`- You need to wait ${timeLeft} more seconds before using the promote command again.`)
+                    ]
+                });
+            }
+        }
+
+        // Set the new cooldown timestamp
+        cooldowns.set(userId, now);
+
         const roleIDs = {
             'pr': '1248818417499373638', // Private
             'lc': '1248818393146986497', // Lance Corporal
@@ -63,11 +89,18 @@ module.exports = {
             });
         }
 
+        // Correctly fetch the user from mentions
         const user = message.mentions.members.first();
-        const newRank = args[1];
-        if (!user || !newRank || !roleIDs[newRank]) {
+        if (!user) {
             return message.reply({
-                embeds: [createEmbed('#0066ff', 'Invalid Format `❌`', '- Please mention a user and specify a valid rank.')]
+                embeds: [createEmbed('#0066ff', 'Invalid User `❌`', '- Please mention a valid user to promote.')]
+            });
+        }
+
+        const newRank = args[1];
+        if (!newRank || !roleIDs[newRank]) {
+            return message.reply({
+                embeds: [createEmbed('#0066ff', 'Invalid Rank `❌`', '- Please specify a valid rank.')]
             });
         }
 
@@ -79,7 +112,7 @@ module.exports = {
 
         if (!execLevel) {
             return message.reply({
-                embeds: [createEmbed('#0066ff', 'Invalid Rank `❌`', '- You do not have a valid level role to promote.')]
+                embeds: [createEmbed('#0066ff', 'Invalid Role `❌`', '- You do not have a valid level role to promote.')]
             });
         }
 
